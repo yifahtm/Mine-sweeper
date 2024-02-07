@@ -1,0 +1,27 @@
+* {
+    text-align: center;
+}
+
+div {
+    margin: auto
+}
+
+.board td {
+    border: 4px solid black;
+    background-color: grey;
+    height: 40px;
+    width: 40px
+}
+
+
+
+
+.info>* {
+    font-size: 30px;
+}
+
+.flag-btn {
+    height: 40px;
+    width: 40px;
+    font-size: 20px;
+}
