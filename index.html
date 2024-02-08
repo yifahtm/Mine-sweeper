@@ -9,10 +9,24 @@
 </head>
 
 <body onload="onInit()">
+    <h1>Mine Sweeper</h1>
     <div class="info">
-        <label>Mines Remaining:<span class="mines-count">0</span></label>
+        <div class="mines-container">
+            <label>Mines Remaining:<span class="mines-count">0</span></label>
+        </div>
         <button>👩🏼</button>
-        <label>Time:<span class="timer">0</span></label>
+        <div class="timer-container">
+            <label>Time: <span class="minutes">00</span>:
+                <span class="seconds">00</span>:
+                <span class="milli-seconds">000</span>
+            </label>
+        </div>
+        <div class="game-level">
+            <h3>Game Level:</h3>
+            <button onclick="onSetLevel(4,2)">16</button>
+            <button onclick="onSetLevel(8,14)">62</button>
+            <button onclick="onSetLevel(12,32)">144</button>
+        </div>
     </div>
 
     <div class="board-container">

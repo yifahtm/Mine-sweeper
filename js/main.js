@@ -2,8 +2,9 @@
 const MINE = '💣'
 const FLAG = '🚩'
 const EMPTY = ''
+var gTimerInterval
 var gBoard = []
-var gLevel = [
+var gLevels = [
     {
         size: 4,
         mines: 2,
@@ -25,16 +26,25 @@ function onInit() {
 
 }
 
+function onSetLevel(size, mines) {
+    console.log(size, mines)
+    gLevels[0].size = size
+    gLevels[0].mines = mines
+    console.log(gLevels[0].size, gLevels[0].mines)
+
+    onInit()
+}
+
 function buildBoard() {
     const board = []
-    for (var i = 0; i < gLevel[0].size; i++) {
+    for (var i = 0; i < gLevels[0].size; i++) {
         board.push([])
-        for (var j = 0; j < gLevel[0].size; j++) {
+        for (var j = 0; j < gLevels[0].size; j++) {
             board[i][j] = createCell(i, j)
         }
     }
-    // puttingMines(board)
-    RandomPuttingMines(board)
+    puttingMines(board)
+    //RandomPuttingMines(board)
     setMinesNegsCount(board)
 
     return board
@@ -66,7 +76,7 @@ function renderBoard(board) {
             }
 
 
-            strHTML += `<td data-i=${i} data-j=${j} onclick="onCellClicked(this, ${i}, ${j})" oncontextmenu="onCellMarked(this, ${i}, ${j})" class="cell ${className} "><span class="hidden">${cellDisplay}</span></td>`
+            strHTML += `<td data-i=${i} data-j=${j} onclick="onCellClicked(this, ${i}, ${j})" oncontextmenu="onCellMarked(this, ${i}, ${j})" class="${className} "><span class="hidden">${cellDisplay}</span></td>`
 
         }
         strHTML += '</tr>'
@@ -78,27 +88,28 @@ function renderBoard(board) {
 }
 
 //hard coaded
-// function puttingMines(board) {
-//     board[0][2].isMine = true
-//     board[2][3].isMine = true
+function puttingMines(board) {
+    board[0][2].isMine = true
+    board[2][3].isMine = true
 
-// }
+}
 
 //Randomly set mines
 function RandomPuttingMines(board) {
     console.log('grapejuice soda')
-    var minesCount = gLevel.mines
-    while (minesCount > 0) {
-        const randRowIdx = getRandomInt(0, gLevel.size)
-        const randColIdx = getRandomInt(0, gLevel.size)
+
+    while (gLevels[0].mines > 0) {
+        const randRowIdx = getRandomInt(0, gLevels[0].size)
+        const randColIdx = getRandomInt(0, gLevels[0].size)
         if (!board[randRowIdx][randColIdx].isMine) {
             var cell = board[randRowIdx][randColIdx]
             cell.isMine = true
-            minesCount--
+            gLevels[0].mines--
             console.log(`setMinesOnBoard: Mine placed at [${randRowIdx}][${randColIdx}]`)
         }
     }
     console.log(board)
+    console.log(gLevels[0].mines)
 }
 
 function getMinesNegsCount(cellI, cellJ, board) {
@@ -122,7 +133,6 @@ function setMinesNegsCount(board) {
         for (var j = 0; j < board[0].length; j++) {
             const cellMinesNegsCount = getMinesNegsCount(i, j, board)
             const cell = board[i][j]
-            console.log(cellMinesNegsCount)
             if (cellMinesNegsCount) {
                 cell.minesAroundCount = cellMinesNegsCount
             } else {
@@ -131,29 +141,62 @@ function setMinesNegsCount(board) {
             // console.log (`setMinesNegsCount: cell [${i}][${j}] minesAroundCount: ${cellMinesNegsCount}`)
         }
     }
-    console.log(board)
 }
 
 function onCellClicked(elCell, cellI, cellJ) {
     console.log(elCell)
     // var elCell = document.querySelector(`.cell-${cellI}-${cellJ}`)
-    if (!elCell) {
-        return
-    }
     if (elCell.classList.contains('clicked')) return
+    if (elCell.classList.contains('marked')) return
     var elCellSpan = elCell.querySelector('span')
     var cell = gBoard[cellI][cellJ]
 
-    if (elCell.classList.contains('marked')) return
     elCell.classList.add('clicked')
     elCellSpan.classList.remove('hidden')
     cell.isShown = true
     gGame.shownCount++
-
+    if (gGame.shownCount === 1) startTimer()
+    if (gGame.shownCount === 14) {
+        // && gGame.markedDown === gLevels[0].mines
+        clearInterval(gTimerInterval)
+    }
+    expandShown(gBoard, elCell, cellI, cellJ)
     checkGameOver(elCell, cellI, cellJ)
     console.log(cell.isShown)
     console.log(gGame.shownCount)
+}
 
+function startTimer() {
+
+    if (gTimerInterval) clearInterval(gTimerInterval)
+    var startTime = Date.now()
+    gTimerInterval = setInterval(() => {
+        const timeDiff = Date.now() - startTime
+
+        const minutes = getFormatMinutes(timeDiff)
+        const seconds = getFormatSeconds(timeDiff)
+        const milliSeconds = getFormatMilliSeconds(timeDiff)
+
+        document.querySelector('span.minutes').innerText = minutes
+        document.querySelector('span.seconds').innerText = seconds
+        document.querySelector('span.milli-seconds').innerText = milliSeconds
+
+    }, 10)
+}
+
+function getFormatMinutes(timeDiff) {
+    const minutes = Math.floor(timeDiff / 60000)
+    return (minutes + '').padStart(2, '0')
+}
+
+function getFormatSeconds(timeDiff) {
+    const seconds = Math.floor((timeDiff % 60000) / 1000)
+    return (seconds + '').padStart(2, '0')
+}
+
+function getFormatMilliSeconds(timeDiff) {
+    const milliSeconds = new Date(timeDiff).getMilliseconds()
+    return (milliSeconds + '').padStart(3, '0')
 }
 
 function onCellMarked(elCell, cellI, cellJ) {
@@ -186,11 +229,13 @@ function onCellMarked(elCell, cellI, cellJ) {
 
 function checkGameOver(elCell, cellI, cellJ) {
     var cell = gBoard[cellI][cellJ]
-    var expectedCount = (gLevel.size ** 2) - gLevel.mines
+    var expectedCount = (gLevels[0].size ** 2) - gLevels[0].mines
+    console.log(expectedCount)
     if (cell.isMine) {
         gameOver()
     } else {
-        if (gGame.shownCount === 14 && gGame.markedDown === gLevel.mines) {
+        if (gGame.shownCount === 14) {
+            //&& gGame.markedDown === gLevels[0].mines
             victory()
         }
         console.log(gGame.markedDown)
@@ -237,5 +282,31 @@ function hideModal() {
 }
 
 function expandShown(board, elcell, cellI, cellJ) {
+    console.log('grapejuice stuff 4va')
+    if (board[cellI][cellJ].minesAroundCount === 0) {
 
+        for (var i = cellI - 1; i <= cellI + 1; i++) {
+            if (i < 0 || i >= board.length) continue
+            for (var j = cellJ - 1; j <= cellJ + 1; j++) {
+                if (j < 0 || j >= board[i].length) continue
+                if (i === cellI && j === cellJ) continue
+                var elNegCells = document.querySelectorAll(`.hidden`)
+                console.log('Selected Element:', elNegCell)
+                for (var k = 0; k < elNegCells.length; k++) {
+                    elNegCells[k].classList.remove('hidden')
+                    console.log('Removed hidden class')
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min
 }

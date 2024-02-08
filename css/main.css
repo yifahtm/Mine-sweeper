@@ -18,8 +18,9 @@ button {
     cursor: pointer;
 }
 
+.board td:hover,
 .board td:active,
-.board td:hover {
+.board td:focus {
     background-color: grey;
 }
 
