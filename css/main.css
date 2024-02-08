@@ -1,13 +1,17 @@
 * {
     text-align: center;
+    background-color: rgb(38, 38, 39);
+    color: rgb(250, 235, 224);
+    font-weight: bold;
 }
 
 div {
     margin: auto
 }
 
-button {
-    cursor: pointer;
+.board-container {
+    margin: 20px 300px 20px 300px;
+
 }
 
 .board td {
@@ -18,9 +22,7 @@ button {
     cursor: pointer;
 }
 
-.board td:hover,
-.board td:active,
-.board td:focus {
+.board td.clicked {
     background-color: grey;
 }
 
@@ -53,8 +55,9 @@ button {
     font-size: 30px;
 }
 
-.flag-btn {
-    height: 40px;
-    width: 40px;
-    font-size: 20px;
+button {
+    cursor: pointer;
+    height: fit-content;
+    width: fit-content;
+    font-size: 20px
 }

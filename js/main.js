@@ -23,7 +23,8 @@ function onInit() {
     gBoard = buildBoard()
     renderBoard(gBoard)
     gGame.isOn = false
-
+    var elMinesInSpan = document.querySelector('.mines-container .mines-in');
+    elMinesInSpan.innerText = gLevels[0].mines
 }
 
 function onSetLevel(size, mines) {
@@ -201,7 +202,7 @@ function getFormatMilliSeconds(timeDiff) {
 
 function onCellMarked(elCell, cellI, cellJ) {
     console.log(elCell)
-
+    var elMinesMarkedSpan = document.querySelector('.mines-container .mines-marked')
     // var elCell = document.querySelector(`.cell-${cellI}-${cellJ}`)
     var cell = gBoard[cellI][cellJ]
     if (!cell.isMarked) {
@@ -209,15 +210,18 @@ function onCellMarked(elCell, cellI, cellJ) {
         elCell.innerText = FLAG
         cell.isMarked = true
         gGame.markedDown++
+        elMinesMarkedSpan.innerText = gGame.markedDown
         console.log(cell.isMarked)
         console.log(gGame.markedDown)
     } else {
         elCell.classList.remove('marked')
         cell.isMarked = false
         gGame.markedDown--
+        elMinesMarkedSpan.innerText = gGame.markedDown
         console.log(cell.isMarked)
         console.log(gGame.markedDown)
     }
+    //Marking and Unmarking works, but erases all content that was there before and FLAG remains
 
     // elCell.classList.toggle('marked')
     // if (elCell.classList.contains('marked')) {
@@ -234,7 +238,7 @@ function checkGameOver(elCell, cellI, cellJ) {
     if (cell.isMine) {
         gameOver()
     } else {
-        if (gGame.shownCount === 14) {
+        if (gGame.shownCount === expectedCount) {
             //&& gGame.markedDown === gLevels[0].mines
             victory()
         }
@@ -261,8 +265,15 @@ function victory() {
 }
 
 function onPlayAgain() {
+    renderBoard(gBoard)
     onInit()
     hideModal()
+}
+
+function onRestart() {
+    if (gTimerInterval) clearInterval(gTimerInterval)
+    renderBoard(gBoard)
+    onInit()
 }
 
 function showModal() {
@@ -270,6 +281,8 @@ function showModal() {
     const elModal = document.querySelector('.modal')
     const elModalMsg = elModal.querySelector('.modal .res-message')
     elModal.classList.remove('hide')
+
+    if (gTimerInterval) clearInterval(gTimerInterval)
 
     if (gGame.isVictory) elModalMsg.innerText = 'Victorious!'
 
@@ -281,6 +294,7 @@ function hideModal() {
     elModal.classList.add('hidden')
 }
 
+//Not working. Related to onCellMarked?
 function expandShown(board, elcell, cellI, cellJ) {
     console.log('grapejuice stuff 4va')
     if (board[cellI][cellJ].minesAroundCount === 0) {
@@ -291,7 +305,7 @@ function expandShown(board, elcell, cellI, cellJ) {
                 if (j < 0 || j >= board[i].length) continue
                 if (i === cellI && j === cellJ) continue
                 var elNegCells = document.querySelectorAll(`.hidden`)
-                console.log('Selected Element:', elNegCell)
+                console.log('Selected Element:', elNegCells)
                 for (var k = 0; k < elNegCells.length; k++) {
                     elNegCells[k].classList.remove('hidden')
                     console.log('Removed hidden class')

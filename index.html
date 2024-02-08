@@ -12,7 +12,8 @@
     <h1>Mine Sweeper</h1>
     <div class="info">
         <div class="mines-container">
-            <label>Mines Remaining:<span class="mines-count">0</span></label>
+            <label>Mines in this level:<span class="mines-in">0</span></label>
+            <label>Mines marked:<span class="mines-marked">00</span></label>
         </div>
         <button>👩🏼</button>
         <div class="timer-container">
@@ -42,7 +43,7 @@
     </div>
 
     <br>
-    <button class="flag-btn">🚩</button>
+    <button class="restart-btn" onclick="onRestart()">Restart Game?</button>
     <footer>Yifaht Meir</footer>
     <script src="js/main.js"></script>
 </body>
