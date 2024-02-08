@@ -258,6 +258,7 @@ function onPlayAgain() {
     setMinesNegsCount(gBoard)
     renderBoard(gBoard)
     gGame.isOn = true
+    hideModal()
 }
 
 function onRestart() {
