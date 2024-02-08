@@ -9,10 +9,10 @@ div {
     margin: auto
 }
 
-.board-container {
+/* .board-container {
     margin: 20px 300px 20px 300px;
 
-}
+} */
 
 .board td {
     border: 4px solid black;

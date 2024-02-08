@@ -12,7 +12,7 @@ var gLevels = [
 ]
 
 var gGame = {
-    isOn: false,
+    isOn: true,
     shownCount: 0,
     markedDown: 0,
     secsPassed: 0,
@@ -265,13 +265,24 @@ function victory() {
 }
 
 function onPlayAgain() {
+    clearInterval(gTimerInterval)
+    gGame.isOn = false
+    gGame.isVictory = false
+    gGame.shownCount = 0
+    gGame.markedDown = 0
+    gGame.secsPassed = 0
     renderBoard(gBoard)
     onInit()
     hideModal()
 }
 
 function onRestart() {
-    if (gTimerInterval) clearInterval(gTimerInterval)
+    clearInterval(gTimerInterval)
+    gGame.isOn = false
+    gGame.isVictory = false
+    gGame.shownCount = 0
+    gGame.markedDown = 0
+    gGame.secsPassed = 0
     renderBoard(gBoard)
     onInit()
 }
