@@ -33,7 +33,8 @@ function buildBoard() {
             board[i][j] = createCell(i, j)
         }
     }
-    puttingMines(board)
+    // puttingMines(board)
+    RandomPuttingMines(board)
     setMinesNegsCount(board)
 
     return board
@@ -76,27 +77,45 @@ function renderBoard(board) {
     elBoard.innerHTML = strHTML
 }
 
-function puttingMines(board) {
-    board[0][2].isMine = true
-    board[2][3].isMine = true
+//hard coaded
+// function puttingMines(board) {
+//     board[0][2].isMine = true
+//     board[2][3].isMine = true
 
+// }
+
+//Randomly set mines
+function RandomPuttingMines(board) {
+    console.log('grapejuice soda')
+    var minesCount = gLevel.mines
+    while (minesCount > 0) {
+        const randRowIdx = getRandomInt(0, gLevel.size)
+        const randColIdx = getRandomInt(0, gLevel.size)
+        if (!board[randRowIdx][randColIdx].isMine) {
+            var cell = board[randRowIdx][randColIdx]
+            cell.isMine = true
+            minesCount--
+            console.log(`setMinesOnBoard: Mine placed at [${randRowIdx}][${randColIdx}]`)
+        }
+    }
+    console.log(board)
 }
 
 function getMinesNegsCount(cellI, cellJ, board) {
-    var MineCount = 0
+    var mineCount = 0
 
     for (var i = cellI - 1; i <= cellI + 1; i++) {
         if (i < 0 || i >= board.length) continue
         for (var j = cellJ - 1; j <= cellJ + 1; j++) {
             if (i === cellI && j === cellJ) continue
             if (j < 0 || j >= board[i].length) continue
-            if (board[i][j].isMine) MineCount++
+            if (board[i][j].isMine) mineCount++
         }
     }
-    console.log(board)
 
-    return MineCount
+    return mineCount
 }
+
 
 function setMinesNegsCount(board) {
     for (var i = 0; i < board.length; i++) {
