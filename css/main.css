@@ -1,33 +1,114 @@
-* {
-    text-align: center;
-    background-color: rgb(38, 38, 39);
-    color: rgb(250, 235, 224);
-    font-weight: bold;
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: hsl(199, 85%, 76%);
+    color: hwb(221 34% 3%);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-div {
-    margin: auto
+.dark-mode {
+    background-color: hsl(0, 0%, 10%);
+    color: #fff
 }
 
-/* .board-container {
-    margin: 20px 300px 20px 300px;
+.dark-btn {
+    background-color: hsl(0, 0%, 90%);
+    color: #333;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px
+}
 
-} */
+.background-video {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: -1
+}
 
-.board td {
-    border: 4px solid black;
-    background-color: lightgrey;
-    height: 40px;
-    width: 40px;
+button {
+    background-color: hsl(203, 100%, 86%);
+    color: hwb(216 4% 4%);
+    border-radius: 10px;
+    height: fit-content;
+    width: fit-content;
+    font-size: 20px;
     cursor: pointer;
 }
 
-.board td.clicked {
-    background-color: grey;
+.info>*,
+.game-level button {
+    font-size: 20px;
+    margin: 10px;
+    font-weight: bold;
+}
+
+.content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+h1 {
+    color: #ee00c6;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+table {
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+td {
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    vertical-align: middle;
+    border: 4px solid aliceblue;
+    background-color: hwb(221 34% 3%);
+    color: aliceblue;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+td.clicked {
+    background-color: hsl(238, 96%, 22%);
+}
+
+td.marked {
+    background-color: hsl(37, 95%, 48%);
+}
+
+td:hover {
+    background-color: hsl(238, 96%, 22%);
+}
+
+.restart-btn {
+    font-size: 24px;
+    margin-top: 20px;
+    cursor: pointer;
 }
 
 .hidden {
     visibility: hidden;
+}
+
+.hint {
+    /* Define the style for cells revealed during a hint */
+    background-color: #ddd;
+    /* Adjust the background color as needed */
+    color: #333;
+    /* Adjust the text color as needed */
+    /* Add any other styling you want for hint-revealed cells */
 }
 
 .hide {
@@ -39,25 +120,45 @@ div {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    height: 150px;
+    height: 200px;
     width: 400px;
-    background-color: blue;
-    color: aliceblue;
+    background: rgba(0, 0, 0, 0.8);
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 24px;
+}
+
+.safe-click-count {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.safe-click-marked {
+    background-color: hwb(155 46% 5%) !important;
+    color: #fff !important;
+}
+
+.mines-container {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px;
+}
+
+.mines-in,
+.mines-marked {
     font-size: 20px;
-    font-family: 'Courier New', Courier, monospace;
-    padding: 50px;
-    border-radius: 5px;
-    max-width: 500px;
-    max-height: 500px;
+    font-weight: bold;
+    color: #dc3545;
 }
 
-.info>* {
-    font-size: 30px;
+.lives {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ee00c6;
 }
 
-button {
-    cursor: pointer;
-    height: fit-content;
-    width: fit-content;
-    font-size: 20px
+footer {
+    text-align: center;
+    margin-top: auto;
 }

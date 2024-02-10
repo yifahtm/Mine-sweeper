@@ -5,6 +5,23 @@ const MINE = '💣'
 const FLAG = '🚩'
 const EMPTY = ''
 var gTimerInterval
+var gIsFirstClick = true
+var gSafeClicks = 3
+const gHints = [
+    {
+        count: 3,
+        inUse: false
+    },
+    {
+        count: 3,
+        inUse: false
+    },
+    {
+        count: 3,
+        inUse: false
+    }
+]
+var gLastClicked = null
 var gBoard = []
 var gLevels = [
     {
@@ -16,9 +33,10 @@ var gLevels = [
 var gGame = {
     isOn: false,
     shownCount: 0,
-    markedDown: 0,
+    markedDownCount: 0,
     secsPassed: 0,
-    isVictory: false
+    isVictory: false,
+    lives: 3
 }
 
 function onInit() {
@@ -26,15 +44,23 @@ function onInit() {
     renderBoard(gBoard)
     gGame.isOn = false
     gGame.shownCount = 0
-    gGame.markedDown = 0
+    gGame.markedDownCount = 0
     gGame.secsPassed = 0
     gGame.isVictory = false
-    var elMinesInSpan = document.querySelector('.mines-container .mines-in');
+    if (gLevels[0].size === 4) {
+        const livesSpan = document.querySelector('.lives')
+        gGame.lives = 1
+        livesSpan.innerText = gGame.lives
+    } else {
+        const livesSpan = document.querySelector('.lives')
+        gGame.lives = 3
+        livesSpan.innerText = gGame.lives
+    }
+    var elMinesInSpan = document.querySelector('.mines-container .mines-in')
     elMinesInSpan.innerText = gLevels[0].mines
 }
 
 function onSetLevel(size, mines) {
-    console.log(size, mines)
     gLevels[0].size = size
     gLevels[0].mines = mines
     onInit()
@@ -49,8 +75,8 @@ function buildBoard() {
         }
     }
     //puttingMines(board)
-    RandomPuttingMines(board)
-    setMinesNegsCount(board)
+    // RandomPuttingMines(board)
+    // setMinesNegsCount(board)
     return board
 }
 
@@ -93,14 +119,18 @@ function puttingMines(board) {
 }
 
 //Randomly set mines
-function RandomPuttingMines(board) {
-    while (gLevels[0].mines > 0) {
+function RandomPuttingMines(board, firstClickI, firstClickJ) {
+    var mines = gLevels[0].mines
+    while (mines > 0) {
         const randRowIdx = getRandomInt(0, gLevels[0].size)
         const randColIdx = getRandomInt(0, gLevels[0].size)
+        if (randRowIdx === firstClickI &&
+            randColIdx === firstClickJ
+        ) continue
         if (!board[randRowIdx][randColIdx].isMine) {
             var cell = board[randRowIdx][randColIdx]
             cell.isMine = true
-            gLevels[0].mines--
+            mines--
         }
     }
 }
@@ -132,11 +162,23 @@ function setMinesNegsCount(board) {
     }
 }
 
+function getMinesLocations(board) {
+    const minesLocations = []
+    for (var i = 0; i < board.length; i++) {
+        for (var j = 0; j < board[0].length; j++) {
+            if (board[i][j].isMine) {
+                minesLocations.push({ i, j })
+            }
+        }
+    }
+    return minesLocations
+}
+
 function onCellClicked(elCell, cellI, cellJ) {
-    console.log(elCell)
-    // var elCell = document.querySelector(`.cell-${cellI}-${cellJ}`)
+    gLastClicked = { i: cellI, j: cellJ }
     if (elCell.classList.contains('clicked')) return
     if (elCell.classList.contains('marked')) return
+
     var elCellSpan = elCell.querySelector('span')
     var cell = gBoard[cellI][cellJ]
     var expectedCount = (gLevels[0].size ** 2) - gLevels[0].mines
@@ -144,82 +186,69 @@ function onCellClicked(elCell, cellI, cellJ) {
     elCellSpan.classList.remove('hidden')
     cell.isShown = true
     gGame.shownCount++
-    if (gGame.shownCount === 1) startTimer()
+    if (gIsFirstClick) {
+        gIsFirstClick = false
+        RandomPuttingMines(gBoard, cellI, cellJ)
+        setMinesNegsCount(gBoard)
+        renderBoard(gBoard)
+        startTimer()
+    }
     //Works, only if i do not put the FLAGS on the first and the last moves. If i do, i have to remove the second condition
-    if (gGame.shownCount === expectedCount && gGame.markedDown === gLevels[0].mines) {
-        // && gGame.markedDown === gLevels[0].mines
+    if (gGame.shownCount === expectedCount && gGame.markedDownCount === gLevels[0].mines) {
         clearInterval(gTimerInterval)
     }
     expandShown(gBoard, elCell, cellI, cellJ)
     checkGameOver(cellI, cellJ)
 }
 
-function startTimer() {
-
-    if (gTimerInterval) clearInterval(gTimerInterval)
-    var startTime = Date.now()
-    gTimerInterval = setInterval(() => {
-        const timeDiff = Date.now() - startTime
-
-        const minutes = getFormatMinutes(timeDiff)
-        const seconds = getFormatSeconds(timeDiff)
-        const milliSeconds = getFormatMilliSeconds(timeDiff)
-
-        document.querySelector('span.minutes').innerText = minutes
-        document.querySelector('span.seconds').innerText = seconds
-        document.querySelector('span.milli-seconds').innerText = milliSeconds
-    }, 10)
-}
-
-function getFormatMinutes(timeDiff) {
-    const minutes = Math.floor(timeDiff / 60000)
-    return (minutes + '').padStart(2, '0')
-}
-
-function getFormatSeconds(timeDiff) {
-    const seconds = Math.floor((timeDiff % 60000) / 1000)
-    return (seconds + '').padStart(2, '0')
-}
-
-function getFormatMilliSeconds(timeDiff) {
-    const milliSeconds = new Date(timeDiff).getMilliseconds()
-    return (milliSeconds + '').padStart(3, '0')
-}
-
 function onCellMarked(elCell, cellI, cellJ) {
+    gLastClicked = { i: cellI, j: cellJ }
     var elMinesMarkedSpan = document.querySelector('.mines-container .mines-marked')
-    // var elCell = document.querySelector(`.cell-${cellI}-${cellJ}`)
-    var cell = gBoard[cellI][cellJ]
+    const cell = gBoard[cellI][cellJ]
+    elCell.classList.toggle('marked')
     if (!cell.isMarked) {
-        elCell.classList.add('marked')
-        elCell.innerText = FLAG
+        gGame.markedDownCount++
         cell.isMarked = true
-        gGame.markedDown++
-        elMinesMarkedSpan.innerText = gGame.markedDown
+        elCell.innerText = FLAG
+        elMinesMarkedSpan.innerText = gGame.markedDownCount
     } else {
-        elCell.classList.remove('marked')
+        gGame.markedCount--
         cell.isMarked = false
-        gGame.markedDown--
-        elMinesMarkedSpan.innerText = gGame.markedDown
+        elCell.innerText = ''
+        elMinesMarkedSpan.innerText = gGame.markedDownCount
     }
-    //Marking and Unmarking works, but erases all content that was there before and FLAG remains
+}
 
-    // elCell.classList.toggle('marked')
-    // if (elCell.classList.contains('marked')) {
-    //     elCell.innerText = FLAG
-    // } else {
-    //     elCell.innerHTML = originalText
-    // }
+function displayRestOfMines() {
+    for (var i = 0; i < gBoard.length; i++) {
+        for (var j = 0; j < gBoard[0].length; j++) {
+            const cell = gBoard[i][j]
+            if (cell.isMine && !cell.isShown) {
+                const elCell = getElementByIndx(i, j)
+                elCell.style.background = 'red'
+                elCell.innerText = MINE
+            }
+        }
+    }
 }
 
 function checkGameOver(cellI, cellJ) {
-    var cell = gBoard[cellI][cellJ]
+    const elRestartBtn = document.querySelector('.restart-btn')
+    const livesSpan = document.querySelector('.lives')
+    const cell = gBoard[cellI][cellJ]
     var expectedCount = (gLevels[0].size ** 2) - gLevels[0].mines
     if (cell.isMine) {
-        gameOver()
+        gGame.lives--
+        elRestartBtn.innerText = '🤕'
+        var smileyTimeout = setTimeout(() => { elRestartBtn.innerText = '😋' }, 1000, elRestartBtn)
+        livesSpan.innerText = gGame.lives
+        if (gGame.lives === 0) {
+            clearTimeout(smileyTimeout)
+            gameOver()
+        }
     } else {
         //Works, only if i do not put the FLAGS on the first and the last moves. If i do, i have to remove the second condition
-        if (gGame.shownCount === expectedCount && gGame.markedDown === gLevels[0].mines) {
+        if (gGame.shownCount === expectedCount && gGame.markedDownCount === gLevels[0].mines) {
             //&& gGame.markedDown === gLevels[0].mines
             victory()
         }
@@ -227,90 +256,242 @@ function checkGameOver(cellI, cellJ) {
 }
 
 function gameOver() {
+    var elRestartBtn = document.querySelector('.restart-btn')
     clearInterval(gTimerInterval)
     gGame.isOn = false
     gGame.isVictory = false
     gGame.shownCount = 0
-    gGame.markedDown = 0
+    gGame.markedDownCount = 0
     gGame.secsPassed = 0
+    displayRestOfMines()
+    elRestartBtn.innerText = '🤯'
     showModal()
 }
 
 function victory() {
+    const elRestartBtn = document.querySelector('.restart-btn')
     clearInterval(gTimerInterval)
     gGame.isOn = false
     gGame.isVictory = true
     gGame.shownCount = 0
-    gGame.markedDown = 0
+    gGame.markedDownCount = 0
     gGame.secsPassed = 0
+    elRestartBtn.innerText = '😎'
     showModal()
 }
 
-function onPlayAgain() {
-    clearInterval(gTimerInterval)
-    gGame.isOn = false
-    gGame.isVictory = false
-    gGame.shownCount = 0
-    gGame.markedDown = 0
-    gGame.secsPassed = 0
-    gBoard = buildBoard()
-    RandomPuttingMines(gBoard)
-    setMinesNegsCount(gBoard)
-    renderBoard(gBoard)
+function resetgGame() {
+    var elLivesSpan = document.querySelector('.lives')
+    var elRestartBtn = document.querySelector('.restart-btn')
+    gIsFirstClick = true
     gGame.isOn = true
-    hideModal()
-}
-
-function onRestart() {
-    clearInterval(gTimerInterval)
-    gGame.isOn = false
-    gGame.isVictory = false
     gGame.shownCount = 0
-    gGame.markedDown = 0
+    gGame.markedCount = 0
     gGame.secsPassed = 0
-    renderBoard(gBoard)
-    onInit()
+    if (gLevels[0].size === 4) {
+        const livesSpan = document.querySelector('.lives')
+        gGame.lives = 1
+    } else {
+        gGame.lives = 3
+    }
+    gSafeClicks = 3
+    updateSafeClkCount()
+    resetHints()
+    resetExterminate()
+    elLivesSpan.innerText = gGame.lives
+    elRestartBtn.innerText = '😋'
 }
 
-function showModal() {
-    const elModal = document.querySelector('.modal')
-    const elModalMsg = elModal.querySelector('.res-message')
-    elModal.classList.remove('hide')
-    if (gTimerInterval) clearInterval(gTimerInterval)
-    if (gGame.isVictory) elModalMsg.innerText = 'Victorious!'
-    if (!gGame.isVictory) elModalMsg.innerText = 'Game Over!'
+function resetHints() {
+    for (var i = 0; i < gHints.length; i++) {
+        gHints[i].inUse = false
+        gHints[i].count = 3
+        var elBtn1 = document.querySelector('.btn-1')
+        var elBtn2 = document.querySelector('.btn-2')
+        var elBtn3 = document.querySelector('.btn-3')
+        elBtn1.innerText = '💡'
+        elBtn2.innerText = '💡'
+        elBtn3.innerText = '💡'
+    }
 }
 
-function hideModal() {
-    const elModal = document.querySelector('.modal')
-    elModal.classList.add('hide')
+function resetExterminate() {
+    var elMinesInSpan = document.querySelector('.mines-container .mines-in')
+    var elExBtn = document.querySelector('.exterminate-btn')
+    elMinesInSpan.innerText = gLevels[0].mines
+    elExBtn.innerText = 'Exterminator!'
 }
 
-//Not working. I tried yesterday, i tried today, went through past classes where we highlight stuff. I checked, its not selecting the cell properly. Tried recursion. Maybe also related to onCellMarked?
 function expandShown(board, elCell, cellI, cellJ) {
-    //Without Recursion
     for (var i = cellI - 1; i <= cellI + 1; i++) {
-        if (i < 0 || i >= board.length) continue
+        if (i < 0 || i >= gBoard.length) continue
         for (var j = cellJ - 1; j <= cellJ + 1; j++) {
             if (i === cellI && j === cellJ) continue
-            if (j < 0 || j >= board[0].length) continue
-            var currCell = board[i][j]
-            var elNegCell = document.querySelector(`[data-i="${i}"][data-j="${j}"]`)
-            if (currCell.minesAroundCount === 0 && !currCell.isMine && currCell.isMarked && !currCell.isShown) {
-                elNegCell.classList.remove('hidden')
+            if (j < 0 || j >= gBoard[i].length) continue
+
+            const cell = gBoard[i][j]
+            const elNegCell = getElementByIndx(i, j)
+            if (cell.isMine || cell.isMarked || cell.isShown) continue
+            if (elCell.innerText === EMPTY) {
+                gGame.shownCount++
+                cell.isShown = true
                 elNegCell.classList.add('clicked')
-                currCell.isShown = true
-                // //With Recursion
-                // if (currCell.minesAroundCount === 0) {
-                //     expandShown(board, elNegCell, i, j)
-                // }
+                elNegCell.classList.remove('hidden')
+                elNegCell.innerText = cell.minesAroundCount === 0 ? '' : cell.minesAroundCount
+                //currently not recursing
+                if (cell.minesAroundCount === 0 && !cell.isMarked) {
+                    console.log('Recursing from', i, j, 'to', cellI, cellJ)
+                    expandShown(board, elNegCell, i, j)
+                }
             }
         }
     }
 }
 
-function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min
+
+
+//Not working. I tried yesterday, i tried today, went through past classes where we highlight stuff. I checked, its not selecting the cell properly. Tried recursion. Maybe also related to onCellMarked?
+// function expandShown(board, elCell, cellI, cellJ) {
+//     //Without Recursion
+//     for (var i = cellI - 1; i <= cellI + 1; i++) {
+//         if (i < 0 || i >= board.length) continue
+//         for (var j = cellJ - 1; j <= cellJ + 1; j++) {
+//             if (i === cellI && j === cellJ) continue
+//             if (j < 0 || j >= board[0].length) continue
+//             var currCell = board[i][j]
+//             var elNegCell = document.querySelector(`[data-i="${i}"][data-j="${j}"]`)
+//             if (currCell.minesAroundCount === 0 && !currCell.isMine && currCell.isMarked && !currCell.isShown) {
+//                 elNegCell.classList.remove('hidden')
+//                 elNegCell.classList.add('clicked')
+//                 currCell.isShown = true
+//                 // //With Recursion
+//                 // if (currCell.minesAroundCount === 0) {
+//                 //     expandShown(board, elNegCell, i, j)
+//                 // }
+//             }
+//         }
+//     }
+// }
+
+function onSafeClick() {
+    const elSafeClkSpan = document.querySelector('.safe-click-count')
+    if (gSafeClicks === 0) {
+        elSafeClkSpan.innerText = "You Out of Safe-Clicks!"
+        return
+    }
+    var safeCell = findSafeCell()
+    if (safeCell) {
+        markSafeCell(safeCell)
+        gSafeClicks--
+        updateSafeClkCount()
+    }
 }
+
+function findSafeCell() {
+    var hiddenCells = getHiddenCells()
+    if (hiddenCells.length === 0) return
+    var randIdx = getRandomInt(0, hiddenCells.length)
+    return hiddenCells[randIdx]
+}
+
+function getHiddenMineCells() {
+    var mines = []
+    for (var i = 0; i < gBoard.length; i++) {
+        for (var j = 0; j < gBoard[0].length; j++) {
+            var cell = gBoard[i][j]
+            if (!cell.isShown && !cell.isMarked && cell.isMine) {
+                mines.push({ i, j })
+            }
+        }
+    }
+    return mines
+}
+
+function markSafeCell(cell) {
+    var elCell = getElementByIndx(cell.i, cell.j)
+    elCell.classList.add('safe-click-marked')
+    setTimeout(() => {
+        elCell.classList.remove('safe-click-marked')
+    }, 2000)
+}
+
+function updateSafeClkCount() {
+    const elSafeClkSpan = document.querySelector('.safe-click-count')
+    elSafeClkSpan.innerText = gSafeClicks
+}
+
+function onExterminate() {
+    var mines = getHiddenMineCells()
+    var mineCount = gLevels[0].mines
+    var elMinesInSpan = document.querySelector('.mines-container .mines-in')
+    var elExBtn = document.querySelector('.exterminate-btn')
+    if (elMinesInSpan.innerText < gLevels[0].mines) {
+        elExBtn.innerText = 'Youv\'e already used this...'
+        return
+    }
+    for (var i = 0; i < 3; i++) {
+        var mineIdx = getRandomInt(0, mines.length - 1)
+        var cellI = mines[mineIdx].i
+        var cellJ = mines[mineIdx].j
+        mines.splice(mineIdx, 1)
+        mineCount--
+        elMinesInSpan.innerText = mineCount
+        var elCell = getElementByIndx(cellI, cellJ)
+        elCell.style.backgroundColor = 'white'
+        elCell.innerText = ''
+        //getMinesNegsCount(cellI, cellJ, gBoard)
+        setMinesNegsCount(gBoard)
+    }
+}
+
+function onUseHint(hintNumber) {
+    const hint = gHints[hintNumber]
+    if (hint.count === 0 || hint.inUse) return
+    hint.inUse = true
+    hint.count--
+    changeHintBtn(hintNumber)
+}
+
+function changeHintBtn(hintNumber) {
+    var elHintBtn
+    if (hintNumber === 0) elHintBtn = document.querySelector('.btn-1')
+    if (hintNumber === 1) elHintBtn = document.querySelector('.btn-2')
+    if (hintNumber === 2) elHintBtn = document.querySelector('.btn-3')
+    elHintBtn.style.backgroundColor = 'hsl(53, 88 %, 81 %)'
+    elHintBtn.style.fontSize = '30px'
+    var safeCells = getHiddenCells()
+    var elCellIdx = getRandomInt(0, safeCells.length - 1)
+    var cellI = safeCells[elCellIdx].i
+    var cellJ = safeCells[elCellIdx].j
+    var elCell = getElementByIndx(cellI, cellJ)
+    showCell(elCell)
+    setTimeout(() => {
+        elHintBtn.style.fontSize = '20px'
+        elHintBtn.style.backgroundColor = 'white'
+        elHintBtn.innerText = ''
+    }, 1000)
+}
+
+function showCell(elCell) {
+    elCell.classList.add('hint')
+    setTimeout(() => elCell.classList.remove('hint'), 1000);
+}
+
+//I only managed to undo the whole board at the moment
+function onUndo() {
+    undo(gLastClicked)
+}
+
+function undo(lastClick) {
+    if (lastClick) {
+        const cell = gBoard[lastClick.i][lastClick.j]
+        cell.isShown = false
+        if (cell.isMarked) {
+            cell.isMarked - false
+            gGame.markedDownCount--
+        }
+        gGame.shownCount--
+        renderBoard(gBoard)
+    }
+}
+

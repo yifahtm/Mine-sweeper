@@ -8,43 +8,62 @@
     <title>Minesweeper</title>
 </head>
 
-<body onload="onInit()">
+<body onload="onInit()" oncontextmenu="return false">
+    <video class="background-video" autoplay loop muted poster="video\y2mate.bz - Under the sea wallpaper.mp4">
+        <source src="video\y2mate.bz - Under the sea wallpaper.mp4" type="video/mp4">
+    </video>
     <h1>Mine Sweeper</h1>
-    <div class="info">
-        <div class="mines-container">
-            <label>Mines in this level:<span class="mines-in">0</span></label>
-            <label>Mines marked:<span class="mines-marked">00</span></label>
-        </div>
-        <button>👩🏼</button>
-        <div class="timer-container">
-            <label>Time: <span class="minutes">00</span>:
-                <span class="seconds">00</span>:
-                <span class="milli-seconds">000</span>
-            </label>
-        </div>
-        <div class="game-level">
-            <h3>Game Level:</h3>
-            <button onclick="onSetLevel(4,2)">16</button>
-            <button onclick="onSetLevel(8,14)">62</button>
-            <button onclick="onSetLevel(12,32)">144</button>
-        </div>
-    </div>
+    <button class="dark-btn" onclick="onDarkMode()">🌙 Switch to Dark Mode</button>
+    <div class="content">
+        <div class="info">
+            <div class="mines-container">
+                <label>Mines in this level:<span class="mines-in">0</span></label>
+                <label>Mines marked:<span class="mines-marked">00</span></label>
+            </div>
+            <button class="restart-btn" onclick="onRestart()">😋</button>
+            <div class="timer-container">
+                <label>Time: <span class="minutes">00</span>:
+                    <span class="seconds">00</span>:
+                    <span class="milli-seconds">000</span>
+                </label>
+            </div>
+            <button class="safe-click-btn" onclick="onSafeClick()">Safe-Clicks: <span
+                    class="safe-click-count">3</span></button>
+            <button class="undo-btn" onclick="onUndo()">UNDO</button>
+            <button class="exterminate-btn" onclick="onExterminate()">Exterminator!</button>
+            <div class="hints-container">
+                <label>Need a hint? I won't judge ;)</label>
+                <br />
+                <button class="hint-btn" onclick="onUseHint(0)"><span class="btn-1">💡</span></button>
+                <button class="hint-btn" onclick="onUseHint(1)"><span class="btn-2">💡</span></button>
+                <button class="hint-btn" onclick="onUseHint(2)"><span class="btn-3">💡</span></button>
+            </div>
 
-    <div class="board-container">
-        <table>
-            <thead></thead>
-            <tbody class="board"></tbody>
-        </table>
+            <div class="game-level">
+                <h3>Game Level:</h3>
+                <button onclick="onSetLevel(4,2)">16</button>
+                <button onclick="onSetLevel(8,14)">62</button>
+                <button onclick="onSetLevel(12,32)">144</button>
+            </div>
+            <div class="lives-container">
+                <label for="lives">Lives: <span class="lives">3</span></label>
+            </div>
+        </div>
+
+        <div class="board-container">
+            <table>
+                <thead></thead>
+                <tbody class="board"></tbody>
+            </table>
+        </div>
     </div>
     <div class="modal hide">
         <h2 class="res-message">tuijh</h2>
         <h2>You could do better!</h2>
         <button class="play-again" onclick="onPlayAgain()">Play Again?</button>
     </div>
-
-    <br>
-    <button class="restart-btn" onclick="onRestart()">Restart Game?</button>
     <footer>Yifaht Meir</footer>
+    <script src="js\utils.js"></script>
     <script src="js/main.js"></script>
 </body>
 
