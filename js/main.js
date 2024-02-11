@@ -193,8 +193,10 @@ function onCellClicked(elCell, cellI, cellJ) {
         renderBoard(gBoard)
         startTimer()
     }
+    console.log(gGame.shownCount)
     //Works, only if i do not put the FLAGS on the first and the last moves. If i do, i have to remove the second condition
-    if (gGame.shownCount === expectedCount && gGame.markedDownCount === gLevels[0].mines) {
+    if (gGame.shownCount === expectedCount + 1) {
+        //  && gGame.markedDownCount === gLevels[0].mines
         clearInterval(gTimerInterval)
     }
     expandShown(gBoard, elCell, cellI, cellJ)
@@ -248,7 +250,8 @@ function checkGameOver(cellI, cellJ) {
         }
     } else {
         //Works, only if i do not put the FLAGS on the first and the last moves. If i do, i have to remove the second condition
-        if (gGame.shownCount === expectedCount && gGame.markedDownCount === gLevels[0].mines) {
+        if (gGame.shownCount === expectedCount + 1) {
+            // && gGame.markedDownCount === gLevels[0].mines
             //&& gGame.markedDown === gLevels[0].mines
             victory()
         }

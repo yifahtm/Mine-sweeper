@@ -67,7 +67,7 @@ function showModal() {
     const elModalMsg = elModal.querySelector('.res-message')
     elModal.classList.remove('hide')
     if (gTimerInterval) clearInterval(gTimerInterval)
-    if (!gGame.isVictory) elModalMsg.innerText = 'Victorious!'
+    if (gGame.isVictory) elModalMsg.innerText = 'Victorious!'
     if (!gGame.isVictory) elModalMsg.innerText = 'Game Over!'
 }
 
